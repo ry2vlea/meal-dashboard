@@ -304,7 +304,7 @@ th{background:#f0ede5}
    "protein_min": 18,
    "protein_max": 22,
    "kcal_min": 350,
-   "kcal_max": 450,
+   "kcal_max": 350,
    "sugar_g": null,
    "source": "home",
    "cost_usd": 0,
@@ -327,7 +327,7 @@ function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate
 function todayStr(){return ymd(new Date())}
 function parseYmd(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
 function num(n){return Math.round(n).toLocaleString("en-US")}
-function rng(a,b,unit){a=a||0;b=(b==null?a:b);return (a===b?"~"+num(a):num(a)+"–"+num(b))+(unit||"")}
+function rng(a,b,unit){a=a||0;b=(b==null?a:b);return (a===b?num(a):num(a)+"–"+num(b))+(unit||"")}
 function money(n){return "$"+(n||0).toFixed(2)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function to12(t){if(!t)return "";var p=t.split(":"),h=+p[0],m=p[1];var ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+m+" "+ap}

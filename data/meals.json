@@ -118,7 +118,7 @@
    "protein_min": 18,
    "protein_max": 22,
    "kcal_min": 350,
-   "kcal_max": 450,
+   "kcal_max": 350,
    "sugar_g": null,
    "source": "home",
    "cost_usd": 0,
