@@ -1,0 +1,9 @@
+# scratch screenshots (keep docs/*.png)
+*.png
+!docs/*.png
+# local exports / scratch
+/food-log.csv
+/meals.json
+_*.html
+.DS_Store
+__pycache__/

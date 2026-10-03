@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f5d3a">
+<title>Meal Dashboard</title>
+<style>
+:root{--g:#2f5d3a;--g2:#3f7a4d;--gl:#e7f0e9;--bg:#f6f4ef;--card:#fff;--ink:#222;--mut:#6b6b6b;--line:#e3e0d8;--warn:#b5651d;--bad:#b23b3b}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.4}
+header{background:var(--g);color:#fff;padding:16px 16px 14px;position:sticky;top:0;z-index:5;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+header h1{margin:0;font-size:20px}
+header p{margin:2px 0 0;opacity:.85;font-size:13px}
+main{max-width:1100px;margin:0 auto;padding:14px 12px 110px;display:grid;gap:14px}
+@media(min-width:900px){main{grid-template-columns:1.4fr 1fr;align-items:start;padding:20px 20px 110px}}
+.col{display:grid;gap:14px;min-width:0}
+.card{background:var(--card);border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card h2{margin:0 0 10px;font-size:16px;color:var(--g)}
+.seg{display:flex;background:#fff;border-radius:12px;padding:4px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg button{flex:1;border:0;background:transparent;min-height:44px;border-radius:9px;font-size:15px;font-weight:600;color:var(--g);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--g);color:#fff}
+.day{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden}
+.day>button.dh{all:unset;box-sizing:border-box;display:flex;width:100%;align-items:center;gap:10px;padding:14px;min-height:64px;cursor:pointer}
+.day>button.dh:focus-visible{outline:3px solid var(--g2);outline-offset:-3px}
+.dh .dt{flex:1;min-width:0}
+.dh .dt b{display:block;font-size:16px}
+.dh .dt small{color:var(--mut);font-size:13px}
+.pill{display:inline-block;background:var(--gl);color:var(--g);border-radius:999px;padding:3px 9px;font-size:13px;font-weight:600;white-space:nowrap}
+.tots{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.chev{font-size:18px;color:var(--mut);transition:transform .2s}
+.day.open .chev{transform:rotate(90deg)}
+.entries{display:none;border-top:1px solid var(--line)}
+.day.open .entries{display:block}
+.entry{all:unset;box-sizing:border-box;display:block;width:100%;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;min-height:56px}
+.entry:last-child{border-bottom:0}
+.entry:hover,.entry:focus-visible{background:#f8faf8}
+.entry .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.entry .nm{font-weight:600}
+.entry .tm{color:var(--mut);font-size:13px;white-space:nowrap}
+.entry .det{font-size:14px;margin-top:2px}
+.entry .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{font-size:12px;border-radius:999px;padding:2px 8px;background:#f0ede5;color:#444}
+.tag.home{background:var(--gl);color:var(--g)}
+.tag.takeout{background:#fdf0e3;color:var(--warn)}
+.tag.sugar{background:#fbe6e6;color:var(--bad)}
+.entry .nt{font-size:13px;color:var(--mut);margin-top:4px}
+.empty{color:#999;font-style:italic;font-size:14px}
+.bud{margin:10px 0 14px}
+.bud .row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px}
+.bar{height:14px;background:#eee9df;border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--g2);border-radius:999px}
+.bar>i.over{background:var(--bad)}
+.bud .rem{font-size:13px;color:var(--mut);margin-top:4px}
+svg{display:block;width:100%;height:auto}
+.legend{font-size:12px;color:var(--mut);margin-top:4px}
+details.sec{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+details.sec>summary{list-style:none;cursor:pointer;padding:14px;min-height:52px;font-weight:700;color:var(--g);display:flex;justify-content:space-between;align-items:center}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"▸";color:var(--mut);transition:transform .2s}
+details.sec[open]>summary::after{transform:rotate(90deg)}
+details.sec>.in{padding:0 14px 14px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;height:34px}
+th{background:#f0ede5}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:0;border-radius:10px;min-height:44px;padding:0 14px;font-size:15px;font-weight:600;cursor:pointer;background:var(--gl);color:var(--g)}
+.btn.pri{background:var(--g);color:#fff}
+.btn.del{background:#fbe6e6;color:var(--bad)}
+.fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:62px;height:62px;border-radius:50%;border:0;background:var(--g);color:#fff;font-size:34px;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;z-index:10}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20;align-items:flex-end;justify-content:center}
+.ov.show{display:flex}
+@media(min-width:700px){.ov{align-items:center}}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.sheet{border-radius:18px}}
+.sheet h3{margin:0 0 12px;color:var(--g)}
+.f{display:grid;gap:10px}
+.f label{display:grid;gap:4px;font-size:13px;font-weight:600;color:#444}
+.f input,.f select,.f textarea{font:inherit;font-size:16px;padding:10px;border:1px solid #cfcabe;border-radius:10px;min-height:44px;width:100%;background:#fff}
+.f textarea{min-height:64px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:12px;color:var(--mut);font-weight:400}
+.acts{display:flex;gap:8px;margin-top:6px}
+.acts .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:30}
+.toast.show{opacity:.92}
+.src{font-size:12px;color:var(--mut)}
+</style>
+</head>
+<body>
+<header><h1>🍽️ Meal Dashboard</h1><p>Survival-mode budget · San Juan, PR · <span id="srcInfo">loading…</span></p></header>
+
+<main>
+  <div class="col">
+    <div class="seg" role="group" aria-label="Filter">
+      <button data-f="all" aria-pressed="true">All</button>
+      <button data-f="home" aria-pressed="false">🏠 Home</button>
+      <button data-f="takeout" aria-pressed="false">🛍️ Takeout</button>
+    </div>
+    <div id="days" class="col"></div>
+  </div>
+
+  <div class="col col-r">
+    <div class="card" id="budgetCard">
+      <h2>Budget · <span id="monthName"></span></h2>
+      <div id="budgets"></div>
+    </div>
+    <div class="card">
+      <h2>Calories · last 7 days</h2>
+      <div id="chartKcal"></div>
+      <div class="legend">Bar = midpoint · line = low–high range</div>
+    </div>
+    <div class="card">
+      <h2>Protein (g) · last 7 days</h2>
+      <div id="chartProt"></div>
+    </div>
+
+    <details class="sec">
+      <summary>This week's plan</summary>
+      <div class="in">
+        <table><tr><th></th><th>Desayuno</th><th>Almuerzo</th><th>Cena</th></tr>
+        <tr><td>Lun</td><td></td><td></td><td></td></tr><tr><td>Mar</td><td></td><td></td><td></td></tr><tr><td>Mié</td><td></td><td></td><td></td></tr><tr><td>Jue</td><td></td><td></td><td></td></tr><tr><td>Vie</td><td></td><td></td><td></td></tr><tr><td>Sáb</td><td></td><td></td><td></td></tr><tr><td>Dom</td><td></td><td></td><td></td></tr></table>
+      </div>
+    </details>
+    <details class="sec">
+      <summary>Grocery list</summary>
+      <div class="in"><p class="empty">Empty — add a plan first</p></div>
+    </details>
+    <details class="sec">
+      <summary>Pantry &amp; equipment</summary>
+      <div class="in"><p>Stove · Fridge · Microwave</p></div>
+    </details>
+
+    <div class="card">
+      <h2>Data</h2>
+      <div class="tools">
+        <button class="btn pri" id="expJson">Export JSON</button>
+        <button class="btn" id="expCsv">Export CSV</button>
+        <button class="btn del" id="reset">Reset to repo data</button>
+      </div>
+      <p class="src">Changes are saved in this browser only. Export JSON → replace <code>data/meals.json</code> → commit.</p>
+    </div>
+  </div>
+</main>
+
+<button class="fab" id="fab" aria-label="Add meal">+</button>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="fTitle">
+  <form class="sheet f" id="form" autocomplete="off">
+    <h3 id="fTitle">Add meal</h3>
+    <label>Name / Comida<input name="name" required placeholder="e.g. Arroz con habichuelas"></label>
+    <label>Details<textarea name="details" placeholder="What & how much"></textarea></label>
+    <div class="two">
+      <label>Date<input type="date" name="date" required></label>
+      <label>Source<select name="source"><option value="home">🏠 Home-cooked</option><option value="takeout">🛍️ Takeout</option></select></label>
+    </div>
+    <div class="two">
+      <label>Time<input type="time" name="t1"></label>
+      <label>Until <span class="hint">(optional)</span><input type="time" name="t2"></label>
+    </div>
+    <div class="two">
+      <label>Protein g <span class="hint">min</span><input type="number" inputmode="decimal" min="0" step="any" name="pmin"></label>
+      <label>Protein g <span class="hint">max (optional)</span><input type="number" inputmode="decimal" min="0" step="any" name="pmax"></label>
+    </div>
+    <div class="two">
+      <label>kcal <span class="hint">min</span><input type="number" inputmode="decimal" min="0" step="any" name="kmin"></label>
+      <label>kcal <span class="hint">max (optional)</span><input type="number" inputmode="decimal" min="0" step="any" name="kmax"></label>
+    </div>
+    <div class="two">
+      <label>Cost $<input type="number" inputmode="decimal" min="0" step="0.01" name="cost" placeholder="0.00"></label>
+      <label>Sugar g <span class="hint">(optional)</span><input type="number" inputmode="decimal" min="0" step="any" name="sugar"></label>
+    </div>
+    <label>Notes<textarea name="notes"></textarea></label>
+    <div class="acts">
+      <button type="button" class="btn del" id="fDel" hidden>Delete</button>
+      <button type="button" class="btn" id="fCancel">Cancel</button>
+      <button type="submit" class="btn pri">Save</button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- Embedded fallback copy of data/meals.json (used when opened via file://).
+     Regenerate with: python3 scripts/embed.py -->
+<script id="seed" type="application/json">
+{
+ "version": 1,
+ "budgets": {
+  "grocery_monthly_usd": 250,
+  "dining_monthly_usd": 200
+ },
+ "entries": [
+  {
+   "id": "2026-10-03-a",
+   "date": "2026-10-03",
+   "time": "09:00",
+   "time_label": "9:00 AM AST",
+   "name": "Microwave pancakes x3 (boxed)",
+   "portion": "3 small pancakes no syrup",
+   "details": "3 small boxed microwave pancakes, no syrup.",
+   "protein_min": 6,
+   "protein_max": 6,
+   "kcal_min": 150,
+   "kcal_max": 180,
+   "sugar_g": null,
+   "source": "home",
+   "cost_usd": 0,
+   "notes": "home; estimate. Cost unknown (mom buys groceries)."
+  },
+  {
+   "id": "2026-10-03-b",
+   "date": "2026-10-03",
+   "time": "17:51",
+   "time_label": "5:51 PM AST",
+   "name": "Smash burger on pan de mallorca (3 patties + 2 Swiss)",
+   "portion": "~16 oz raw beef + 1 mallorca + 2 Swiss slices (assumed)",
+   "details": "Smash burger on pan de mallorca: 3 patties (~16 oz raw 80/20), 2 slices Swiss.",
+   "protein_min": 100,
+   "protein_max": 100,
+   "kcal_min": 1350,
+   "kcal_max": 1750,
+   "sugar_g": null,
+   "source": "home",
+   "cost_usd": 0,
+   "notes": "home-cooked; estimate. Swiss slices assumed. Cost unknown (mom buys groceries)."
+  },
+  {
+   "id": "2026-10-03-c",
+   "date": "2026-10-03",
+   "time": "09:00-17:55",
+   "time_label": "9:00 AM–5:55 PM AST",
+   "name": "Arizona Fruit Punch",
+   "portion": "1 drink",
+   "details": "1 Arizona Fruit Punch, sipped through the day.",
+   "protein_min": 0,
+   "protein_max": 0,
+   "kcal_min": 250,
+   "kcal_max": 250,
+   "sugar_g": null,
+   "source": "home",
+   "cost_usd": 0,
+   "notes": "said 250 onzas; read as 250 kcal (he said \"250 onzas\"; read as 250 calories)."
+  },
+  {
+   "id": "2026-10-02-a",
+   "date": "2026-10-02",
+   "time": "10:00",
+   "time_label": "10:00 AM AST",
+   "name": "Smash burger (2 patties + bun + 2 Swiss)",
+   "portion": "~24 oz raw beef (12 oz each) + 1 regular bun + 2 Swiss slices",
+   "details": "1 smash burger: 2 beef patties (12 oz each, ~24 oz raw 80/20), 1 regular bun, 2 slices Swiss.",
+   "protein_min": 133,
+   "protein_max": 141,
+   "kcal_min": 1670,
+   "kcal_max": 2120,
+   "sugar_g": null,
+   "source": "home",
+   "cost_usd": 0,
+   "notes": "estimate. Cost unknown (mom buys groceries)."
+  },
+  {
+   "id": "2026-10-02-b",
+   "date": "2026-10-02",
+   "time": "20:00",
+   "time_label": "8:00 PM AST",
+   "name": "Microwave pancakes x3 (boxed)",
+   "portion": "3 small pancakes no syrup",
+   "details": "3 small boxed microwave pancakes, no syrup.",
+   "protein_min": 6,
+   "protein_max": 6,
+   "kcal_min": 150,
+   "kcal_max": 180,
+   "sugar_g": null,
+   "source": "home",
+   "cost_usd": 0,
+   "notes": "estimate. Cost unknown (mom buys groceries)."
+  },
+  {
+   "id": "2026-10-02-c",
+   "date": "2026-10-02",
+   "time": "",
+   "time_label": "Through the day",
+   "name": "Coca-Cola x10 (16 oz glasses)",
+   "portion": "160 oz",
+   "details": "10 glasses Coca-Cola, 16 oz each (160 oz).",
+   "protein_min": 0,
+   "protein_max": 0,
+   "kcal_min": 1870,
+   "kcal_max": 1870,
+   "sugar_g": 520,
+   "source": "home",
+   "cost_usd": 0,
+   "notes": "~520 g sugar; high-sugar flag. ⚠️ High sugar, worth easing back."
+  }
+ ]
+}
+</script>
+
+<script>
+(function(){
+"use strict";
+var LS_KEY="mealtracker.v1";
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var state={seed:null,entries:[],deleted:[],budgets:{grocery_monthly_usd:250,dining_monthly_usd:200},filter:"all",open:{},editing:null};
+
+function pad(n){return (n<10?"0":"")+n}
+function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function todayStr(){return ymd(new Date())}
+function parseYmd(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function num(n){return Math.round(n).toLocaleString("en-US")}
+function rng(a,b,unit){a=a||0;b=(b==null?a:b);return (a===b?"~"+num(a):num(a)+"–"+num(b))+(unit||"")}
+function money(n){return "$"+(n||0).toFixed(2)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function to12(t){if(!t)return "";var p=t.split(":"),h=+p[0],m=p[1];var ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+m+" "+ap}
+function makeLabel(t){if(!t)return "Through the day";var p=t.split("-");return p.length>1?to12(p[0])+"–"+to12(p[1])+" AST":to12(p[0])+" AST"}
+function sortKey(e){return e.time?e.time.slice(0,5):"99:99"}
+function toast(m){var t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove("show")},1800)}
+
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify({seedVersion:state.seed.version||1,entries:state.entries,deleted:state.deleted,saved:new Date().toISOString()}))}catch(e){console.warn("localStorage unavailable",e)}}
+
+function init(seed,srcLabel){
+  state.seed=seed;
+  if(seed.budgets)state.budgets=seed.budgets;
+  var stored=null;try{stored=JSON.parse(localStorage.getItem(LS_KEY)||"null")}catch(e){}
+  if(stored&&Array.isArray(stored.entries)){
+    state.entries=stored.entries;state.deleted=stored.deleted||[];
+    // merge in any new seed entries (e.g. committed to the repo since last visit)
+    var have={};state.entries.forEach(function(e){have[e.id]=1});
+    var added=0;seed.entries.forEach(function(e){if(!have[e.id]&&state.deleted.indexOf(e.id)<0){state.entries.push(JSON.parse(JSON.stringify(e)));added++}});
+    if(added)save();
+    srcLabel+=" + local edits";
+  }else{
+    state.entries=JSON.parse(JSON.stringify(seed.entries));
+  }
+  $("#srcInfo").textContent=srcLabel;
+  state.open[todayStr()]=true;
+  render();
+}
+
+function load(){
+  var emb=null;
+  try{emb=JSON.parse($("#seed").textContent)}catch(e){console.error("Embedded seed invalid",e)}
+  if(/^https?:/.test(location.protocol)&&window.fetch){
+    fetch("data/meals.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})
+      .then(function(d){init(d,"data/meals.json")})
+      .catch(function(err){console.warn("fetch failed, using embedded copy",err);init(emb,"embedded copy")});
+  }else init(emb,"embedded copy (offline)");
+}
+
+function filtered(){var f=state.filter;return state.entries.filter(function(e){return f==="all"||(e.source||"home")===f})}
+function groupByDay(list){var g={};list.forEach(function(e){(g[e.date]=g[e.date]||[]).push(e)});return g}
+function totals(list){var t={pmin:0,pmax:0,kmin:0,kmax:0,sugar:0,cost:0};list.forEach(function(e){
+  t.pmin+=+e.protein_min||0;t.pmax+=+(e.protein_max!=null?e.protein_max:e.protein_min)||0;
+  t.kmin+=+e.kcal_min||0;t.kmax+=+(e.kcal_max!=null?e.kcal_max:e.kcal_min)||0;
+  t.sugar+=+e.sugar_g||0;t.cost+=+e.cost_usd||0});return t}
+
+function dayTitle(ds){var d=parseYmd(ds),t=todayStr(),y=ymd(new Date(Date.now()-864e5));
+  var s=d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+  return (ds===t?"Today · ":ds===y?"Yesterday · ":"")+s}
+
+function renderDays(){
+  var g=groupByDay(filtered()),keys=Object.keys(g).sort().reverse(),box=$("#days");
+  if(!keys.length){box.innerHTML='<div class="card"><p class="empty">No '+(state.filter==="all"?"":state.filter+" ")+'entries yet. Tap + to add one.</p></div>';return}
+  box.innerHTML=keys.map(function(k){
+    var es=g[k].slice().sort(function(a,b){return sortKey(a)<sortKey(b)?-1:1}),t=totals(es);
+    return '<section class="day'+(state.open[k]?" open":"")+'" data-day="'+k+'">'+
+      '<button class="dh" aria-expanded="'+(!!state.open[k])+'"><div class="dt"><b>'+esc(dayTitle(k))+'</b><small>'+es.length+' entr'+(es.length===1?"y":"ies")+(t.cost?" · "+money(t.cost):"")+'</small></div>'+
+      '<div class="tots"><span class="pill">'+rng(t.pmin,t.pmax," g protein")+'</span><span class="pill">'+rng(t.kmin,t.kmax," kcal")+'</span></div><span class="chev">›</span></button>'+
+      '<div class="entries">'+es.map(function(e){
+        return '<button class="entry" data-id="'+esc(e.id)+'"><div class="top"><span class="nm">'+esc(e.name)+'</span><span class="tm">'+esc(e.time_label||makeLabel(e.time))+'</span></div>'+
+        (e.details?'<div class="det">'+esc(e.details)+'</div>':"")+
+        '<div class="meta"><span class="tag">'+rng(e.protein_min,e.protein_max," g")+'</span><span class="tag">'+rng(e.kcal_min,e.kcal_max," kcal")+'</span>'+
+        (e.sugar_g?'<span class="tag sugar">⚠️ '+num(e.sugar_g)+' g sugar</span>':"")+
+        '<span class="tag '+(e.source||"home")+'">'+((e.source||"home")==="takeout"?"🛍️ Takeout":"🏠 Home")+'</span><span class="tag">'+(e.cost_usd?money(+e.cost_usd):"$0 / unknown")+'</span></div>'+
+        (e.notes?'<div class="nt">'+esc(e.notes)+'</div>':"")+'</button>'}).join("")+
+      '</div></section>'}).join("");
+}
+
+function renderBudgets(){
+  var now=new Date(),mk=now.getFullYear()+"-"+pad(now.getMonth()+1);
+  $("#monthName").textContent=now.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  var g=0,d=0;state.entries.forEach(function(e){if(e.date&&e.date.slice(0,7)===mk){if((e.source||"home")==="takeout")d+=+e.cost_usd||0;else g+=+e.cost_usd||0}});
+  function bar(lbl,spent,cap){var pct=Math.min(100,cap?spent/cap*100:0),rem=cap-spent;
+    return '<div class="bud"><div class="row"><b>'+lbl+'</b><span>'+money(spent)+' / '+money(cap)+'</span></div><div class="bar" role="progressbar" aria-valuenow="'+Math.round(pct)+'" aria-valuemin="0" aria-valuemax="100"><i class="'+(rem<0?"over":"")+'" style="width:'+pct.toFixed(1)+'%"></i></div><div class="rem">'+(rem>=0?money(rem)+" remaining":"Over by "+money(-rem))+'</div></div>'}
+  $("#budgets").innerHTML=bar("🛒 Groceries (home)",g,state.budgets.grocery_monthly_usd)+bar("🍔 Dining / takeout",d,state.budgets.dining_monthly_usd)+
+    '<p class="src">Existing entries are $0 (mom buys groceries). Add costs to track spend.</p>';
+}
+
+function last7(){var out=[],t=parseYmd(todayStr());for(var i=6;i>=0;i--){var d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);out.push(ymd(d))}return out}
+function chart(el,days,valsFn,color,unit,showRange){
+  var W=360,H=170,L=34,B=24,T=14,R=6,data=days.map(function(d){return valsFn(d)});
+  var mx=Math.max.apply(null,data.map(function(v){return v.max}).concat([1]));
+  var step=Math.pow(10,Math.floor(Math.log10(mx))),top=Math.ceil(mx/step)*step;if(top/step<3)step/=2;
+  var ih=H-B-T,iw=W-L-R,bw=iw/days.length,y=function(v){return T+ih-(v/top)*ih};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="chart">';
+  for(var v=0;v<=top+1e-9;v+=step){s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#eee9df"/><text x="'+(L-4)+'" y="'+(y(v)+4)+'" font-size="10" text-anchor="end" fill="#888">'+(v>=1000?(v/1000)+"k":v)+'</text>'}
+  data.forEach(function(v,i){var x=L+i*bw,cx=x+bw/2,mid=(v.min+v.max)/2,dd=parseYmd(days[i]);
+    if(v.has){s+='<rect x="'+(x+bw*.2)+'" y="'+y(mid)+'" width="'+(bw*.6)+'" height="'+(y(0)-y(mid))+'" rx="3" fill="'+color+'"><title>'+days[i]+': '+rng(v.min,v.max,unit)+'</title></rect>';
+      if(showRange&&v.max>v.min)s+='<line x1="'+cx+'" x2="'+cx+'" y1="'+y(v.max)+'" y2="'+y(v.min)+'" stroke="#222" stroke-width="2"/><line x1="'+(cx-5)+'" x2="'+(cx+5)+'" y1="'+y(v.max)+'" y2="'+y(v.max)+'" stroke="#222" stroke-width="2"/><line x1="'+(cx-5)+'" x2="'+(cx+5)+'" y1="'+y(v.min)+'" y2="'+y(v.min)+'" stroke="#222" stroke-width="2"/>';
+      s+='<text x="'+cx+'" y="'+(y(v.max)-4)+'" font-size="10" text-anchor="middle" fill="#333">'+(mid>=1000?(mid/1000).toFixed(1)+"k":Math.round(mid))+'</text>'}
+    s+='<text x="'+cx+'" y="'+(H-8)+'" font-size="10" text-anchor="middle" fill="'+(days[i]===todayStr()?"#2f5d3a":"#888")+'" font-weight="'+(days[i]===todayStr()?"700":"400")+'">'+dd.toLocaleDateString("en-US",{weekday:"short"})+'</text>'});
+  el.innerHTML=s+'</svg>';
+}
+function renderCharts(){
+  var g=groupByDay(filtered()),days=last7();
+  chart($("#chartKcal"),days,function(d){var t=totals(g[d]||[]);return {min:t.kmin,max:t.kmax,has:!!g[d]}},"#3f7a4d"," kcal",true);
+  chart($("#chartProt"),days,function(d){var t=totals(g[d]||[]);return {min:t.pmin,max:t.pmax,has:!!g[d]}},"#7aa884"," g",true);
+}
+function render(){renderDays();renderBudgets();renderCharts()}
+
+// ---- form ----
+var form=$("#form");
+function openForm(e){
+  state.editing=e?e.id:null;form.reset();
+  $("#fTitle").textContent=e?"Edit meal":"Add meal";$("#fDel").hidden=!e;
+  var t=(e&&e.time||"").split("-");
+  var v={name:e?e.name:"",details:e?e.details||"":"",date:e?e.date:todayStr(),source:e?e.source||"home":"home",
+    t1:e?(t[0]||""):pad(new Date().getHours())+":"+pad(new Date().getMinutes()),t2:e?(t[1]||""):"",
+    pmin:e?e.protein_min:"",pmax:e&&e.protein_max!==e.protein_min?e.protein_max:"",
+    kmin:e?e.kcal_min:"",kmax:e&&e.kcal_max!==e.kcal_min?e.kcal_max:"",
+    cost:e&&e.cost_usd?e.cost_usd:"",sugar:e&&e.sugar_g!=null?e.sugar_g:"",notes:e?e.notes||"":""};
+  Object.keys(v).forEach(function(k){form.elements[k].value=v[k]==null?"":v[k]});
+  $("#ov").classList.add("show");setTimeout(function(){form.elements.name.focus()},50);
+}
+function closeForm(){$("#ov").classList.remove("show");state.editing=null}
+function nv(x){return x===""||x==null?null:+x}
+form.addEventListener("submit",function(ev){
+  ev.preventDefault();var f=form.elements;
+  var pmin=nv(f.pmin.value),pmax=nv(f.pmax.value),kmin=nv(f.kmin.value),kmax=nv(f.kmax.value);
+  if(pmin==null&&pmax!=null)pmin=pmax;if(pmax==null)pmax=pmin;if(kmin==null&&kmax!=null)kmin=kmax;if(kmax==null)kmax=kmin;
+  if(pmin!=null&&pmax<pmin){var a=pmin;pmin=pmax;pmax=a}if(kmin!=null&&kmax<kmin){var b=kmin;kmin=kmax;kmax=b}
+  var time=f.t1.value?(f.t1.value+(f.t2.value?"-"+f.t2.value:"")):"";
+  var old=state.editing?state.entries.filter(function(e){return e.id===state.editing})[0]:null;
+  var e={id:old?old.id:"u-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),date:f.date.value,time:time,
+    time_label:old&&old.time===time&&old.time_label?old.time_label:makeLabel(time),
+    name:f.name.value.trim(),portion:old?old.portion||"":"",details:f.details.value.trim(),
+    protein_min:pmin||0,protein_max:pmax||0,kcal_min:kmin||0,kcal_max:kmax||0,sugar_g:nv(f.sugar.value),
+    source:f.source.value,cost_usd:nv(f.cost.value)||0,notes:f.notes.value.trim()};
+  if(old)state.entries[state.entries.indexOf(old)]=e;else state.entries.push(e);
+  state.open[e.date]=true;save();closeForm();render();toast(old?"Saved ✓":"Added ✓");
+});
+$("#fCancel").onclick=closeForm;
+$("#ov").addEventListener("click",function(ev){if(ev.target.id==="ov")closeForm()});
+document.addEventListener("keydown",function(ev){if(ev.key==="Escape")closeForm()});
+$("#fDel").onclick=function(){
+  var id=state.editing,e=state.entries.filter(function(x){return x.id===id})[0];if(!e)return;
+  if(!confirm('Delete "'+e.name+'"? / ¿Borrar?'))return;
+  state.entries.splice(state.entries.indexOf(e),1);if(state.deleted.indexOf(id)<0)state.deleted.push(id);
+  save();closeForm();render();toast("Deleted");
+};
+$("#fab").onclick=function(){openForm(null)};
+$("#days").addEventListener("click",function(ev){
+  var en=ev.target.closest(".entry");
+  if(en){var e=state.entries.filter(function(x){return x.id===en.dataset.id})[0];if(e)openForm(e);return}
+  var dh=ev.target.closest(".dh");if(dh){var k=dh.parentNode.dataset.day;state.open[k]=!state.open[k];renderDays()}
+});
+$$(".seg button").forEach(function(b){b.onclick=function(){state.filter=b.dataset.f;$$(".seg button").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderDays();renderCharts()}});
+
+// ---- export / reset ----
+function download(name,text,type){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
+function sorted(){return state.entries.slice().sort(function(a,b){return a.date===b.date?(sortKey(a)<sortKey(b)?-1:1):(a.date<b.date?1:-1)})}
+$("#expJson").onclick=function(){
+  var out={version:(state.seed.version||1),budgets:state.budgets,entries:sorted()};
+  download("meals.json",JSON.stringify(out,null,2)+"\n","application/json");toast("Exported meals.json");
+};
+$("#expCsv").onclick=function(){
+  var cols=["date","time","name","details","portion","protein_min","protein_max","kcal_min","kcal_max","sugar_g","source","cost_usd","notes"];
+  var q=function(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  download("food-log.csv",[cols.join(",")].concat(sorted().map(function(e){return cols.map(function(c){return q(e[c])}).join(",")})).join("\n")+"\n","text/csv");toast("Exported food-log.csv");
+};
+$("#reset").onclick=function(){if(!confirm("Discard local edits and reload the repo data?"))return;try{localStorage.removeItem(LS_KEY)}catch(e){}state.open={};init(state.seed,$("#srcInfo").textContent.replace(" + local edits",""))};
+
+load();
+})();
+</script>
+</body>
+</html>
